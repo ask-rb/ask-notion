@@ -3,6 +3,8 @@
 require_relative "test_helper"
 
 class ClientTest < Minitest::Test
+  ResponseStub = Struct.new(:status, :body)
+
   def setup
     Ask::Auth.reset_configuration!
   end
@@ -24,8 +26,6 @@ class ClientTest < Minitest::Test
     end
 
     client = Ask::Notion.client
-
-    # Check that the token was passed via the underlying client's config
     assert_equal token, client.instance_variable_get(:@token)
   end
 
@@ -68,5 +68,118 @@ class ClientTest < Minitest::Test
 
     result = Ask::Notion.client.database_query(database_id: "test-id")
     assert_equal({ "results" => [] }, result)
+  end
+
+  def test_default_retries_constant
+    assert_equal 3, Ask::Notion::DEFAULT_RETRIES
+  end
+
+  # -------------------------------------------------------------------
+  # ClientProxy tests — test retry/timeout/error conversion in isolation
+  # -------------------------------------------------------------------
+
+  def make_proxy(behavior_map)
+    underlying = mock("notion_client")
+    behavior_map.each do |method, behaviors|
+      expectation = underlying.stubs(method)
+      behaviors.each do |b|
+        if b[:type] == :raise
+          expectation = expectation.raises(b[:error])
+        elsif b[:type] == :return
+          expectation = expectation.returns(b[:value])
+        end
+      end
+    end
+    Ask::Notion::ClientProxy.new(underlying)
+  end
+
+  def test_proxy_retries_on_too_many_requests
+    error = Notion::Api::Errors::TooManyRequests.new(
+      ResponseStub.new(429, {})
+    )
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: error },
+        { type: :raise, error: error },
+        { type: :return, value: { "results" => ["success"] } }
+      ]
+    })
+    result = proxy.database_query(database_id: "test-id")
+    assert_equal({ "results" => ["success"] }, result)
+  end
+
+  def test_proxy_retries_on_server_error
+    error = Notion::Api::Errors::ServerError.new("server_error", "Oops")
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: error },
+        { type: :return, value: { "results" => ["ok"] } }
+      ]
+    })
+    result = proxy.database_query(database_id: "test-id")
+    assert_equal({ "results" => ["ok"] }, result)
+  end
+
+  def test_proxy_exhausts_retries
+    error = Notion::Api::Errors::ServerError.new("server_error", "Nope")
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: error },
+        { type: :raise, error: error },
+        { type: :raise, error: error },
+        { type: :raise, error: error }
+      ]
+    })
+    assert_raises(Notion::Api::Errors::ServerError) do
+      proxy.database_query(database_id: "test-id")
+    end
+  end
+
+  def test_proxy_retries_on_timeout
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: Timeout::Error },
+        { type: :return, value: { "results" => ["ok"] } }
+      ]
+    })
+    result = proxy.database_query(database_id: "test-id")
+    assert_equal({ "results" => ["ok"] }, result)
+  end
+
+  def test_proxy_exhausts_timeout_retries
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: Timeout::Error },
+        { type: :raise, error: Timeout::Error },
+        { type: :raise, error: Timeout::Error },
+        { type: :raise, error: Timeout::Error }
+      ]
+    })
+    assert_raises(Timeout::Error) do
+      proxy.database_query(database_id: "test-id")
+    end
+  end
+
+  def test_proxy_retries_on_connection_refused
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: Errno::ECONNREFUSED },
+        { type: :return, value: { "results" => ["ok"] } }
+      ]
+    })
+    result = proxy.database_query(database_id: "test-id")
+    assert_equal({ "results" => ["ok"] }, result)
+  end
+
+  def test_proxy_converts_unauthorized
+    error = Notion::Api::Errors::Unauthorized.new("unauthorized", "Bad token")
+    proxy = make_proxy({
+      database_query: [
+        { type: :raise, error: error }
+      ]
+    })
+    assert_raises(Ask::Auth::InvalidCredential) do
+      proxy.database_query(database_id: "test")
+    end
   end
 end
