@@ -2,11 +2,11 @@ require_relative "lib/ask/notion/version"
 
 Gem::Specification.new do |spec|
   spec.name = "ask-notion"
-  spec.version = Ask::notion::VERSION
+  spec.version = Ask::Notion::VERSION
   spec.authors = ["Kaka Ruto"]
   spec.email = ["kaka@myrrlabs.com"]
 
-  spec.summary = "notion service context for the ask-rb ecosystem"
+  spec.summary = "Notion service context for the ask-rb ecosystem"
   spec.description = "Provides authenticated client helper, context metadata, and error guide for AI agents."
   spec.homepage = "https://github.com/ask-rb/ask-notion"
   spec.license = "MIT"
