@@ -9,3 +9,5 @@ group :test do
   gem "mocha", "~> 3.1"
   gem "rake", "~> 13.0"
 end
+
+gem "simplecov", "~> 0.22", group: :test
