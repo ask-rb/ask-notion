@@ -1,3 +1,8 @@
+
+## 0.1.1 (2026-06-21)
+
+- Release preparation: gemspec metadata, skills directory, rubygems dependency
+
 # Changelog
 
 ## 0.1.0 (2026-06-09)
