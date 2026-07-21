@@ -15,8 +15,8 @@ class ContextTest < Minitest::Test
     assert Ask::Notion::API_REF_URL.start_with?("https://developers.notion.com")
   end
 
-  def test_openapi_url_is_defined
-    assert Ask::Notion::OPENAPI_URL.start_with?("https://developers.notion.com")
+  def test_openapi_url_removed
+    refute Ask::Notion.const_defined?(:OPENAPI_URL), "OPENAPI_URL was removed because Notion no longer serves the spec"
   end
 
   def test_auth_name_is_notion_token

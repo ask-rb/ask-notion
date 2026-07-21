@@ -11,8 +11,9 @@ module Ask
     # URL for the Notion API reference.
     API_REF_URL = "https://developers.notion.com/reference"
 
-    # URL for the Notion OpenAPI specification.
-    OPENAPI_URL = "https://developers.notion.com/.well-known/openapi.json"
+    # Notion no longer serves an OpenAPI spec at a stable URL.
+    # The API reference is at API_REF_URL instead.
+    # OPENAPI_URL was removed because the spec is no longer available.
 
     # Credential name used with Ask::Auth.resolve.
     AUTH_NAME = :notion_token
