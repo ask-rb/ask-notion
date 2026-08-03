@@ -12,7 +12,7 @@ class ClientTest < Minitest::Test
   def test_client_returns_notion_client_when_token_available
     token = "ntn_test_token_12345"
     Ask::Auth.configure do |config|
-      config.providers = [->(name, user: nil) { token if name == "notion_token" }]
+      config.providers = [->(name, user: nil) { token if name.to_s == "notion_token" }]
     end
 
     client = Ask::Notion.client
@@ -22,7 +22,7 @@ class ClientTest < Minitest::Test
   def test_client_passes_token_to_notion_client
     token = "ntn_test_token_12345"
     Ask::Auth.configure do |config|
-      config.providers = [->(name, user: nil) { token if name == "notion_token" }]
+      config.providers = [->(name, user: nil) { token if name.to_s == "notion_token" }]
     end
 
     client = Ask::Notion.client
@@ -40,7 +40,7 @@ class ClientTest < Minitest::Test
   def test_client_raises_invalid_credential_on_401
     token = "bad_token"
     Ask::Auth.configure do |config|
-      config.providers = [->(name, user: nil) { token if name == "notion_token" }]
+      config.providers = [->(name, user: nil) { token if name.to_s == "notion_token" }]
     end
 
     error = Notion::Api::Errors::Unauthorized.new("unauthorized", "Token is invalid")
@@ -61,7 +61,7 @@ class ClientTest < Minitest::Test
   def test_client_proxies_normal_calls
     token = "ntn_test_token"
     Ask::Auth.configure do |config|
-      config.providers = [->(name, user: nil) { token if name == "notion_token" }]
+      config.providers = [->(name, user: nil) { token if name.to_s == "notion_token" }]
     end
 
     Notion::Client.any_instance.stubs(:database_query).returns({ "results" => [] })
