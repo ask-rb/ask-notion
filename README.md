@@ -3,9 +3,8 @@
 [![Gem Version](https://badge.fury.io/rb/ask-notion.svg)](https://badge.fury.io/rb/ask-notion)
 
 > **⚠️ DEPRECATED:** This gem is deprecated. Use Notion's official MCP server
-> instead: <https://www.notion.com/help/notion-mcp>. Existing installations of
-> this gem may continue to work, but this repository will receive no further
-> feature development. See the official MCP page for setup and capabilities.
+> instead. Existing installations of this gem may continue to work, but this
+> repository will receive no further feature development.
 
 Notion service context for AI agents in the ask-rb ecosystem. It provides an
 authenticated Notion API client built on notion-ruby-client, metadata
