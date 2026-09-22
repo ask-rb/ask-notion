@@ -1,3 +1,8 @@
+## Deprecated - 2026-09-22
+
+### Deprecated
+- The `ask-notion` gem is deprecated; no further feature development will occur. Use Notion's official MCP server instead: https://www.notion.com/help/notion-mcp
+
 ## [0.1.2] - 2026-06-25
 
 ### Changed
